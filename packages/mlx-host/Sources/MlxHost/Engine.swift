@@ -90,6 +90,8 @@ actor MLXSwiftEngine: LLMEngine {
 
     func loadModel(model: String) async throws {
         if containers[model] != nil { return }
+        let t0 = Date()
+        print("Loading model \(model) on \(device == .cpu ? "cpu" : "gpu")...")
         let container: ModelContainer = try await Device.withDefaultDevice(device) {
             try await Stream.withNewDefaultStream(device: device) {
                 if let dirPath = cachedModels[model] {
@@ -101,6 +103,8 @@ actor MLXSwiftEngine: LLMEngine {
             }
         }
         containers[model] = container
+        let dt = Date().timeIntervalSince(t0)
+        print(String(format: "Loaded model %s in %.2fs", model, dt))
     }
 
     func unloadModel(model: String) async throws {
@@ -178,6 +182,8 @@ actor MLXSwiftEngine: LLMEngine {
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
+                    let t0 = Date()
+                    print("Starting stream \(requestId) (maxTokens=\(request.maxTokens ?? -1))...")
                     try await Device.withDefaultDevice(self.device) {
                         try await Stream.withNewDefaultStream(device: self.device) {
                             let underlying = session.streamResponse(to: prompt)
@@ -191,6 +197,8 @@ actor MLXSwiftEngine: LLMEngine {
                             }
                         }
                     }
+                    let dt = Date().timeIntervalSince(t0)
+                    print(String(format: "Finished stream %s in %.2fs", requestId, dt))
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
