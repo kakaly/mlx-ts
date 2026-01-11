@@ -21,7 +21,8 @@ swift --version || true
 
 TMP="${TMPDIR:-/tmp}"
 CLONED_SPM_DIR="$(mktemp -d "$TMP/mlx-ts-spm-checkouts.XXXXXX")"
-RESULT_BUNDLE="$(mktemp -d "$TMP/mlx-host.xcresult.XXXXXX")"
+# xcodebuild requires that -resultBundlePath does NOT exist ahead of time.
+RESULT_BUNDLE="$(mktemp -u "$TMP/mlx-host.xcresult.XXXXXX")"
 LOG_FILE="$TMP/xcodebuild-mlx-host.local.log"
 DERIVED_DATA="$(mktemp -d "$TMP/mlx-host-derived.XXXXXX")"
 

@@ -124,6 +124,7 @@ jobs:
           # Capture full logs + xcresult so we can debug compiler failures.
           RESULT_BUNDLE="$RUNNER_TEMP/mlx-host.xcresult"
           LOG_FILE="$RUNNER_TEMP/xcodebuild-mlx-host.log"
+          rm -rf "$RESULT_BUNDLE" || true
           : > "$LOG_FILE"
           set +e
           xcodebuild build \
