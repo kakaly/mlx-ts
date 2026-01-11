@@ -1,0 +1,29 @@
+{
+  "name": "mlx-ts",
+  "version": "0.1.1",
+  "description": "AI SDK provider for local MLX (Swift) models on Apple Silicon (macOS).",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "scripts",
+    "bin"
+  ],
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "postinstall": "node ./scripts/install.mjs"
+  },
+  "dependencies": {
+    "ai": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.6",
+    "typescript": "^5.6.3"
+  }
+}
+

@@ -1,0 +1,16 @@
+{
+  "name": "mlx-ai-sdk-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/test.ts"
+  },
+  "dependencies": {
+    "ai": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.6",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

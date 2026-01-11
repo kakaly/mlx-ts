@@ -1,0 +1,33 @@
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.DS_Store
+
+# Cursor / IDE
+.cursor/
+
+# Swift / Xcode / SPM
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj
+*.xcworkspace
+
+# dSYM / build outputs
+*.dSYM/
+
+# npm pack artifacts
+*.tgz
+
+# Local temp clones used during development
+.tmp-*/
+
+# Logs from examples
+examples/**/out.log
+examples/**/out.pid
+
+# Local model cache (if placed under repo accidentally)
+mlx-ts-models/

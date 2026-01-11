@@ -1,0 +1,12 @@
+{
+  "name": "mlx-ts",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "npm run -ws build",
+    "clean": "npm run -ws clean"
+  }
+}
