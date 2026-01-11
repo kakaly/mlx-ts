@@ -104,7 +104,7 @@ actor MLXSwiftEngine: LLMEngine {
         }
         containers[model] = container
         let dt = Date().timeIntervalSince(t0)
-        print(String(format: "Loaded model %s in %.2fs", model, dt))
+        print("Loaded model \(model) in \(String(format: "%.2f", dt))s")
     }
 
     func unloadModel(model: String) async throws {
@@ -184,10 +184,16 @@ actor MLXSwiftEngine: LLMEngine {
                 do {
                     let t0 = Date()
                     print("Starting stream \(requestId) (maxTokens=\(request.maxTokens ?? -1))...")
+                    var firstTokenLogged = false
                     try await Device.withDefaultDevice(self.device) {
                         try await Stream.withNewDefaultStream(device: self.device) {
                             let underlying = session.streamResponse(to: prompt)
                             for try await chunk in underlying {
+                                if !firstTokenLogged {
+                                    firstTokenLogged = true
+                                    let ttft = Date().timeIntervalSince(t0)
+                                    print("First token for \(requestId) after \(String(format: "%.2f", ttft))s")
+                                }
                                 if self.cancelled.contains(requestId) {
                                     continuation.finish(throwing: NSError(domain: "mlx-host", code: 499, userInfo: [NSLocalizedDescriptionKey: "Cancelled"]))
                                     self.cancelled.remove(requestId)
@@ -198,7 +204,7 @@ actor MLXSwiftEngine: LLMEngine {
                         }
                     }
                     let dt = Date().timeIntervalSince(t0)
-                    print(String(format: "Finished stream %s in %.2fs", requestId, dt))
+                    print("Finished stream \(requestId) in \(String(format: "%.2f", dt))s")
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
