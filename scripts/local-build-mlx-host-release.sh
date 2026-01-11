@@ -53,41 +53,43 @@ if [ ! -f "$JAMBA" ]; then
 fi
 
 python3 - "$JAMBA" <<-'PY'
-	import pathlib
-	import sys
-	
-	path = pathlib.Path(sys.argv[1])
-	lines = path.read_text().splitlines(True)
-	
-	out: list[str] = []
-	changed = False
-	i = 0
-	n = len(lines)
-	
-	def next_nonempty(idx: int) -> int:
-		j = idx
-		while j < n and lines[j].strip() == "":
-			j += 1
-		return j
-	
-	while i < n:
-		line = lines[i]
-		if "bias: self.useConvBias," in line:
-			j = next_nonempty(i + 1)
-			if j < n and lines[j].lstrip().startswith(")"):
-				out.append(line.replace("bias: self.useConvBias,", "bias: self.useConvBias"))
-				changed = True
-				i += 1
-				continue
-		out.append(line)
-		i += 1
-	
-	if not changed:
-		print("error: Jamba.swift patch made no changes (pattern not found)")
-		raise SystemExit(1)
-	
-	path.write_text("".join(out))
-	print("patched Jamba.swift")
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+lines = path.read_text().splitlines(True)
+
+out: list[str] = []
+changed = False
+i = 0
+n = len(lines)
+
+
+def next_nonempty(idx: int) -> int:
+    j = idx
+    while j < n and lines[j].strip() == "":
+        j += 1
+    return j
+
+
+while i < n:
+    line = lines[i]
+    if "bias: self.useConvBias," in line:
+        j = next_nonempty(i + 1)
+        if j < n and lines[j].lstrip().startswith(")"):
+            out.append(line.replace("bias: self.useConvBias,", "bias: self.useConvBias"))
+            changed = True
+            i += 1
+            continue
+    out.append(line)
+    i += 1
+
+if not changed:
+    print("error: Jamba.swift patch made no changes (pattern not found)")
+    raise SystemExit(1)
+
+path.write_text("".join(out))
+print("patched Jamba.swift")
 PY
 
 echo "--- build (Debug) ---"
