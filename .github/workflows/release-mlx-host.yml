@@ -20,6 +20,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # When manually dispatched, build the requested tag. Otherwise, use the triggering ref.
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
 
       - name: Select Xcode (prefer Xcode 16+ if available)
         run: |
@@ -37,7 +40,7 @@ jobs:
           xcodebuild -version
           swift --version
 
-      - name: Build mlx-host (arm64, Debug) via xcodebuild
+      - name: Prepare SPM checkouts (resolve + patch)
         run: |
           set -euo pipefail
           cd packages/mlx-host
@@ -93,6 +96,36 @@ PY
             exit 1
           fi
 
+          # Persist for later steps.
+          echo "CLONED_SPM_DIR=$CLONED_SPM_DIR" >> "$GITHUB_ENV"
+
+      - name: Build mlx-host (arm64, Debug) via xcodebuild
+        run: |
+          set -euo pipefail
+          cd packages/mlx-host
+
+          # Capture full logs + xcresult so we can debug compiler failures.
+          RESULT_BUNDLE="$RUNNER_TEMP/mlx-host.xcresult"
+          LOG_FILE="$RUNNER_TEMP/xcodebuild-mlx-host.log"
+          : > "$LOG_FILE"
+          set +e
+          xcodebuild build \
+            -scheme mlx-host \
+            -destination 'platform=macOS' \
+            -configuration Debug \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            -clonedSourcePackagesDirPath "$CLONED_SPM_DIR" \
+            -resultBundlePath "$RESULT_BUNDLE" \
+            | tee -a "$LOG_FILE"
+          STATUS="${PIPESTATUS[0]}"
+          set -e
+          if [ "$STATUS" -ne 0 ]; then
+            echo "xcodebuild failed with status $STATUS"
+            exit "$STATUS"
+          fi
+
           # Capture full logs + xcresult so we can debug compiler failures.
           RESULT_BUNDLE="$RUNNER_TEMP/mlx-host.xcresult"
           LOG_FILE="$RUNNER_TEMP/xcodebuild-mlx-host.log"
@@ -114,11 +147,24 @@ PY
             exit "$STATUS"
           fi
 
-      - name: Upload build logs (on failure)
-        if: failure()
+      - name: Print first compiler error (if any)
+        if: always()
+        run: |
+          set -euo pipefail
+          LOG_FILE="$RUNNER_TEMP/xcodebuild-mlx-host.log"
+          if [ -f "$LOG_FILE" ]; then
+            echo "--- first 'error:' line (if present) ---"
+            grep -n "error:" "$LOG_FILE" | head -n 1 || true
+          else
+            echo "No log file found at $LOG_FILE"
+          fi
+
+      - name: Upload build logs (always)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mlx-host-xcodebuild-debug
+          if-no-files-found: ignore
           path: |
             ${{ runner.temp }}/xcodebuild-mlx-host.log
             ${{ runner.temp }}/mlx-host.xcresult
