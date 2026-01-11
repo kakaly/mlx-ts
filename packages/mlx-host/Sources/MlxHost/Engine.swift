@@ -223,7 +223,7 @@ actor MLXSwiftEngine: LLMEngine {
                                 }
                                 if let self, await self.isCancelled(requestId) {
                                     continuation.finish(throwing: NSError(domain: "mlx-host", code: 499, userInfo: [NSLocalizedDescriptionKey: "Cancelled"]))
-                                    if let self { await self.clearCancelled(requestId) }
+                                    await self.clearCancelled(requestId)
                                     return
                                 }
                                 continuation.yield(chunk)
