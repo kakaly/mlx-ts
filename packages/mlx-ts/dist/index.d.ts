@@ -4,7 +4,14 @@ export type CreateMlxProviderOptions = {
      */
     model: string;
     /**
-     * Where to download models (default: os.tmpdir()/mlx-ts-models)
+     * Where to download/cache models.
+     *
+     * If omitted, we use:
+     * - `process.env.MLX_MODELS_DIR` if set, else
+     * - a persistent OS cache directory (faster + survives reboots):
+     *   - macOS: `~/Library/Caches/mlx-ts/models`
+     *   - Linux: `${XDG_CACHE_HOME:-~/.cache}/mlx-ts/models`
+     *   - Windows: `%LOCALAPPDATA%\\mlx-ts\\models`
      */
     modelsDir?: string;
     /**

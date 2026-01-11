@@ -20,8 +20,22 @@ async function main() {
   //   export MLX_HF_REPO="mlx-community/<some-small-mlx-model>"
   const hfRepo =
     process.env.MLX_HF_REPO ?? "mlx-community/Llama-3.2-3B-Instruct-4bit";
-  const modelsDir =
-    process.env.MLX_MODELS_DIR ?? path.join(os.tmpdir(), "mlx-ts-models");
+  const modelsDir = (() => {
+    const fromEnv = process.env.MLX_MODELS_DIR?.trim();
+    if (fromEnv) return fromEnv;
+    const home = os.homedir() || os.tmpdir();
+    if (process.platform === "darwin") {
+      return path.join(home, "Library", "Caches", "mlx-ts", "models");
+    }
+    if (process.platform === "win32") {
+      const base =
+        process.env.LOCALAPPDATA ?? path.join(home, "AppData", "Local");
+      return path.join(base, "mlx-ts", "models");
+    }
+    const xdg = process.env.XDG_CACHE_HOME?.trim();
+    if (xdg) return path.join(xdg, "mlx-ts", "models");
+    return path.join(home, ".cache", "mlx-ts", "models");
+  })();
 
   const client = new MlxClient({
     hostPath,

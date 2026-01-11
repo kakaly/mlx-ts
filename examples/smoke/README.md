@@ -17,7 +17,7 @@ This is the intended UX for end users:
 
 - `npm i mlx-ts`
 - `createMlxProvider({ model: "mlx-community/..." })`
-- auto-downloads to a default temp dir (overrideable)
+- auto-downloads to a default OS cache dir (overrideable)
 - prints model download progress (first run)
 - on macOS arm64, `mlx-host` is auto-downloaded from GitHub Releases during install (no Swift build required)
 
@@ -33,7 +33,7 @@ const modelId = "mlx-community/Llama-3.2-3B-Instruct-4bit";
 const mlx = createMlxProvider({
   model: modelId,
   // optional overrides:
-  // modelsDir: "/tmp/mlx-ts-models",
+  // modelsDir: "/path/to/your/models-cache",
   // hostPath: process.env.MLX_HOST_BIN,
 });
 
@@ -64,7 +64,8 @@ Local run in this repo:
 
 ```bash
 export MLX_HF_REPO="mlx-community/Llama-3.2-3B-Instruct-4bit"
-export MLX_MODELS_DIR="/tmp/mlx-ts-models" # optional override
+# optional override:
+# export MLX_MODELS_DIR="$HOME/mlx-ts-models"
 
 cd /Users/karthikkalyanaraman/personal-projects/mlx-ts/examples/ai-sdk
 npm install
@@ -82,7 +83,8 @@ import { createMlxProvider } from "mlx-ts";
 const modelId = "mlx-community/Llama-3.2-3B-Instruct-4bit";
 const mlx = createMlxProvider({
   model: modelId,
-  modelsDir: "/tmp/mlx-ts-models",
+  // optional override:
+  // modelsDir: "/path/to/your/models-cache",
   // hostPath: process.env.MLX_HOST_BIN,
 });
 const model = mlx.languageModel(modelId);
@@ -104,7 +106,8 @@ Local run in this repo:
 
 ```bash
 export MLX_HF_REPO="mlx-community/Llama-3.2-3B-Instruct-4bit"
-export MLX_MODELS_DIR="/tmp/mlx-ts-models" # optional override
+# optional override:
+# export MLX_MODELS_DIR="$HOME/mlx-ts-models"
 
 cd /Users/karthikkalyanaraman/personal-projects/mlx-ts/examples/ai-sdk
 npm install

@@ -30,7 +30,7 @@ const modelId = "mlx-community/Llama-3.2-1B-Instruct-4bit";
 const mlx = createMlxProvider({
   model: modelId,
   // optional:
-  // modelsDir: "/tmp/mlx-ts-models",
+  // modelsDir: "/path/to/your/models-cache",
   // hostPath: process.env.MLX_HOST_BIN,
 });
 
@@ -58,7 +58,8 @@ console.log(g.text);
 
 - **Force CPU vs GPU**: set `MLX_HOST_DEVICE=cpu` (default is `gpu`).
 - **Override host binary**: set `MLX_HOST_BIN=/path/to/mlx-host` or pass `{ hostPath }` to `createMlxProvider`.
-- **Override where models are cached**: pass `{ modelsDir }` to `createMlxProvider`.
+- **Default model cache dir**: OS cache directory (macOS: `~/Library/Caches/mlx-ts/models`).
+- **Override where models are cached**: pass `{ modelsDir }` to `createMlxProvider` or set `MLX_MODELS_DIR`.
 - **Override where `mlx-ts` downloads assets from**: set `MLX_TS_HOST_BASE_URL` (base URL containing `mlx-host` and `mlx.metallib`).
 
 ### OpenCode integration

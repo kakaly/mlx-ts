@@ -28,7 +28,7 @@ const modelId = "mlx-community/Llama-3.2-3B-Instruct-4bit";
 const mlx = createMlxProvider({
   model: modelId,
   // optional:
-  // modelsDir: "/tmp/mlx-ts-models",
+  // modelsDir: "/path/to/your/models-cache",
   // hostPath: process.env.MLX_HOST_BIN,
 });
 
@@ -52,7 +52,7 @@ console.log(g.text);
 
 **What happens on first run**
 
-- The model is downloaded from Hugging Face into a cache directory (default: a temp dir; override with `modelsDir`).
+- The model is downloaded from Hugging Face into a cache directory (default: an OS cache dir; override with `modelsDir` or `MLX_MODELS_DIR`).
 - `mlx-host` is started as a long-lived process and your app talks to it over a Unix domain socket (fast IPC).
 
 ### Packages

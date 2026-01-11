@@ -23,6 +23,8 @@ actor MLXSwiftEngine: LLMEngine {
     private var cancelled: Set<String> = []
     private var activeTasks: [String: Task<Void, Never>] = [:]
     private var lastDownloadLogTime: TimeInterval = 0
+    private var lastDownloadCompleted: Int64 = -1
+    private var lastDownloadTotal: Int64 = -1
 
     private func isCancelled(_ requestId: String) -> Bool {
         cancelled.contains(requestId)
@@ -74,16 +76,33 @@ actor MLXSwiftEngine: LLMEngine {
                 revision: revision,
                 matching: patterns,
                 progressHandler: { progress in
-                    // Throttle logs (Progress can be chatty)
+                    // Throttle logs (Progress can be chatty). Note: this Progress typically advances
+                    // when individual files complete (so it can appear "stuck" on large files).
                     let now = Date().timeIntervalSinceReferenceDate
                     if now - self.lastDownloadLogTime < 0.5 { return }
                     self.lastDownloadLogTime = now
 
-                    if progress.totalUnitCount > 0 {
-                        let pct = (Double(progress.completedUnitCount) / Double(progress.totalUnitCount)) * 100.0
-                        print(String(format: "Download progress: %.1f%% (%lld/%lld)", pct, progress.completedUnitCount, progress.totalUnitCount))
+                    let completed = progress.completedUnitCount
+                    let total = progress.totalUnitCount
+
+                    // Only print when something changes, otherwise it looks like a hang.
+                    if completed != self.lastDownloadCompleted || total != self.lastDownloadTotal {
+                        self.lastDownloadCompleted = completed
+                        self.lastDownloadTotal = total
+                        if total > 0 {
+                            let pct = (Double(completed) / Double(total)) * 100.0
+                            print(String(format: "Download progress: %.1f%% (%lld/%lld)", pct, completed, total))
+                        } else {
+                            print("Download progress: \(completed)")
+                        }
+                        return
+                    }
+
+                    // Heartbeat if a single large file is taking a long time.
+                    if total > 0 {
+                        print(String(format: "...still downloading (%lld/%lld)", completed, total))
                     } else {
-                        print("Download progress: \(progress.completedUnitCount)")
+                        print("...still downloading (\(completed))")
                     }
                 }
             )

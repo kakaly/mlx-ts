@@ -4,7 +4,8 @@
 
 ```bash
 export MLX_HF_REPO="mlx-community/Llama-3.2-3B-Instruct-4bit"
-export MLX_MODELS_DIR="/tmp/mlx-ts-models"
+# optional (override default OS cache dir):
+# export MLX_MODELS_DIR="$HOME/mlx-ts-models"
 
 cd /Users/karthikkalyanaraman/personal-projects/mlx-ts/examples/ai-sdk
 npm install

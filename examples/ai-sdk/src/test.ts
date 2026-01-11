@@ -7,12 +7,14 @@ import { createMlxProvider } from "mlx-ts";
 async function main() {
   const modelsDir = process.env.MLX_MODELS_DIR;
   const modelId =
-    process.env.MLX_HF_REPO ?? "mlx-community/Llama-3.2-1B-Instruct-4bit";
+    process.env.MLX_HF_REPO ??
+    "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit";
 
   const mlx = createMlxProvider({
     model: modelId,
-    // optional:
-    // modelsDir,
+    // optional (recommended for large models):
+    // export MLX_MODELS_DIR="$HOME/mlx-ts-models"
+    modelsDir,
     // hostPath: process.env.MLX_HOST_BIN,
   });
 
