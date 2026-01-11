@@ -66,7 +66,7 @@ Local run in this repo:
 export MLX_HF_REPO="mlx-community/Llama-3.2-3B-Instruct-4bit"
 export MLX_MODELS_DIR="/tmp/mlx-ts-models" # optional override
 
-cd /Users/karthikkalyanaraman/personal-projects/mlx-ts/examples/mlx-ts
+cd /Users/karthikkalyanaraman/personal-projects/mlx-ts/examples/ai-sdk
 npm install
 npm run start
 ```

@@ -2,8 +2,8 @@
 import http from "node:http";
 import { URL } from "node:url";
 
-import { createMlxProvider } from "../dist/index.js";
 import { generateText, streamText } from "ai";
+import { createMlxProvider } from "../dist/index.js";
 
 function parseArgs(argv) {
   const args = {};
@@ -72,13 +72,13 @@ async function main() {
     String(args.model ?? process.env.MLX_MODEL ?? "").trim() ||
     "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit";
 
-  const modelsDir =
-    args.modelsDir ?? process.env.MLX_MODELS_DIR ?? undefined;
+  const modelsDir = args.modelsDir ?? process.env.MLX_MODELS_DIR ?? undefined;
   const hostPath = args.hostPath ?? process.env.MLX_HOST_BIN ?? undefined;
 
   const printConfig = Boolean(args["print-config"] ?? false);
   const providerId = String(args.providerId ?? "mlx").trim() || "mlx";
-  const modelKey = String(args.modelKey ?? "qwen3-coder-mlx").trim() || "qwen3-coder-mlx";
+  const modelKey =
+    String(args.modelKey ?? "qwen3-coder-mlx").trim() || "qwen3-coder-mlx";
   const baseURL = `http://127.0.0.1:${PORT}/v1`;
 
   if (printConfig) {
@@ -120,7 +120,10 @@ async function main() {
       // Basic CORS (harmless; helps if a UI ever hits this).
       res.setHeader("access-control-allow-origin", "*");
       res.setHeader("access-control-allow-methods", "GET,POST,OPTIONS");
-      res.setHeader("access-control-allow-headers", "content-type,authorization");
+      res.setHeader(
+        "access-control-allow-headers",
+        "content-type,authorization"
+      );
       if (req.method === "OPTIONS") return res.end();
 
       if (req.method === "GET" && url.pathname === "/health") {
@@ -130,7 +133,14 @@ async function main() {
       if (req.method === "GET" && url.pathname === "/v1/models") {
         return json(res, 200, {
           object: "list",
-          data: [{ id: modelId, object: "model", created: nowUnix(), owned_by: "mlx-ts" }],
+          data: [
+            {
+              id: modelId,
+              object: "model",
+              created: nowUnix(),
+              owned_by: "mlx-ts",
+            },
+          ],
         });
       }
 
@@ -194,7 +204,9 @@ async function main() {
             object: "chat.completion.chunk",
             created: nowUnix(),
             model: modelId,
-            choices: [{ index: 0, delta: { content: chunk }, finish_reason: null }],
+            choices: [
+              { index: 0, delta: { content: chunk }, finish_reason: null },
+            ],
           });
         }
 
@@ -221,4 +233,3 @@ main().catch((err) => {
   console.error("mlx-ts-opencode failed:", err);
   process.exit(1);
 });
-
