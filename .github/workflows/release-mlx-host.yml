@@ -41,6 +41,37 @@ jobs:
         run: |
           set -euo pipefail
           cd packages/mlx-host
+
+          # Use an explicit source packages directory so we can apply small compatibility patches
+          # (without relying on DerivedData paths).
+          CLONED_SPM_DIR="$RUNNER_TEMP/spm-checkouts"
+          mkdir -p "$CLONED_SPM_DIR"
+
+          echo "Resolving package dependencies..."
+          xcodebuild -resolvePackageDependencies \
+            -scheme mlx-host \
+            -destination 'platform=macOS' \
+            -clonedSourcePackagesDirPath "$CLONED_SPM_DIR"
+
+          # Work around Swift 5 language mode incompatibility in upstream mlx-swift-lm:
+          # `Jamba.swift` uses a trailing comma in a function call argument list, which fails under `-swift-version 5`.
+          JAMBA="$CLONED_SPM_DIR/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Jamba.swift"
+          if [ -f "$JAMBA" ]; then
+            echo "Patching $JAMBA (remove trailing comma before closing ')')"
+            # Replace:
+            #   bias: self.useConvBias,
+            # )
+            # with:
+            #   bias: self.useConvBias
+            # )
+            perl -0777 -i -pe 's/(bias:\\s*self\\.useConvBias),\\s*\\n\\s*\\)/$1\\n        )/g' "$JAMBA"
+          else
+            echo "Expected file not found: $JAMBA" >&2
+            echo "Contents of $CLONED_SPM_DIR/checkouts:" >&2
+            ls -la "$CLONED_SPM_DIR/checkouts" >&2 || true
+            exit 1
+          fi
+
           # Capture full logs + xcresult so we can debug compiler failures.
           RESULT_BUNDLE="$RUNNER_TEMP/mlx-host.xcresult"
           LOG_FILE="$RUNNER_TEMP/xcodebuild-mlx-host.log"
@@ -52,7 +83,7 @@ jobs:
             ARCHS=arm64 \
             ONLY_ACTIVE_ARCH=NO \
             CODE_SIGNING_ALLOWED=NO \
-            SWIFT_VERSION=6.0 \
+            -clonedSourcePackagesDirPath "$CLONED_SPM_DIR" \
             -resultBundlePath "$RESULT_BUNDLE" \
             | tee "$LOG_FILE"
           STATUS="${PIPESTATUS[0]}"
