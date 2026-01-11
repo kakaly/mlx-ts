@@ -2,27 +2,16 @@
 
 This repo exposes **local MLX inference** via a Swift daemon (`mlx-host`) and TypeScript APIs.
 
-### 1) Build `mlx-host` (GPU / Metal)
+### Quickstart (no Swift build required)
 
-> Important: `swift build` (SwiftPM CLI) does **not** build the Metal shaders (`default.metallib`), which can cause runtime failures.
-> Use `xcodebuild` for a working GPU build.
-
-```bash
-cd /Users/karthikkalyanaraman/personal-projects/mlx-ts/packages/mlx-host
-xcodebuild build -scheme mlx-host -destination 'platform=macOS' -configuration Debug
-
-DD=$(ls -td ~/Library/Developer/Xcode/DerivedData/mlx-host-* | head -n 1)
-export MLX_HOST_BIN="$DD/Build/Products/Debug/mlx-host"
-```
-
-### 2) Install JS deps
+If you’re an end user, you should not need Xcode at all:
 
 ```bash
 cd /Users/karthikkalyanaraman/personal-projects/mlx-ts
 npm install
 ```
 
-### 3A) AI SDK (recommended UX): `mlx-ts`
+### AI SDK (recommended UX): `mlx-ts`
 
 This is the intended UX for end users:
 
@@ -82,7 +71,7 @@ npm install
 npm run start
 ```
 
-### 3B) AI SDK (advanced / explicit example): `streamText` / `generateText`
+### AI SDK (advanced / explicit example): `streamText` / `generateText`
 
 Code snippet:
 
@@ -120,6 +109,19 @@ export MLX_MODELS_DIR="/tmp/mlx-ts-models" # optional override
 cd /Users/karthikkalyanaraman/personal-projects/mlx-ts/examples/ai-sdk
 npm install
 npm run start
+```
+
+### Development: build `mlx-host` locally (GPU / Metal)
+
+> Important: `swift build` (SwiftPM CLI) does **not** build the Metal shaders (`default.metallib`), which can cause runtime failures.
+> Use `xcodebuild` for a working GPU build.
+
+```bash
+cd /Users/karthikkalyanaraman/personal-projects/mlx-ts/packages/mlx-host
+xcodebuild build -scheme mlx-host -destination 'platform=macOS' -configuration Debug
+
+DD=$(ls -td ~/Library/Developer/Xcode/DerivedData/mlx-host-* | head -n 1)
+export MLX_HOST_BIN="$DD/Build/Products/Debug/mlx-host"
 ```
 
 
