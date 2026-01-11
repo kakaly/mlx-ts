@@ -4,16 +4,38 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build/release (e.g. v0.0.1)"
+        required: true
+        default: "v0.0.1"
 
 permissions:
   contents: write
 
 jobs:
   build-and-release:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Select Xcode (prefer Xcode 16+ if available)
+        run: |
+          set -euo pipefail
+          ls -la /Applications | sed -n '1,200p'
+          # Prefer any Xcode_16*.app if present; otherwise fall back to default Xcode.app
+          CANDIDATE="$(ls -1d /Applications/Xcode_16*.app 2>/dev/null | head -n 1 || true)"
+          if [ -n "$CANDIDATE" ]; then
+            echo "Selecting $CANDIDATE"
+            sudo xcode-select -s "$CANDIDATE/Contents/Developer"
+          else
+            echo "Selecting /Applications/Xcode.app"
+            sudo xcode-select -s "/Applications/Xcode.app/Contents/Developer"
+          fi
+          xcodebuild -version
+          swift --version
 
       - name: Build mlx-host (arm64, Debug) via xcodebuild
         run: |
@@ -69,6 +91,7 @@ jobs:
       - name: Create GitHub Release (if missing) + upload assets
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           files: |
             dist-release/darwin-arm64/mlx-host
             dist-release/darwin-arm64/mlx.metallib
