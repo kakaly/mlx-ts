@@ -1,6 +1,6 @@
 {
   "name": "mlx-ts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "AI SDK provider for local MLX (Swift) models on Apple Silicon (macOS).",
   "private": false,
   "type": "module",
