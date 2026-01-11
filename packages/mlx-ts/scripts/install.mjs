@@ -24,7 +24,11 @@ const pkgJsonPath = path.resolve(new URL("../package.json", import.meta.url).pat
 const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
 const VERSION = pkg.version;
 
-const DEFAULT_BASE = `https://github.com/kakaly/mlx-ts/releases/download/v${VERSION}/darwin-arm64`;
+// Note: GitHub release assets are served from a flat namespace (no subdirectories).
+// We currently publish only darwin/arm64 assets as:
+// - mlx-host
+// - mlx.metallib
+const DEFAULT_BASE = `https://github.com/kakaly/mlx-ts/releases/download/v${VERSION}`;
 const BASE = process.env.MLX_TS_HOST_BASE_URL ?? DEFAULT_BASE;
 
 const BIN_DIR = path.resolve(new URL("../bin/darwin-arm64", import.meta.url).pathname);
@@ -37,18 +41,19 @@ const files = [
 
 function download(url, dest) {
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
     https
       .get(url, (res) => {
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          file.close();
           return resolve(download(res.headers.location, dest));
         }
         if (res.statusCode !== 200) {
-          file.close();
+          try {
+            fs.unlinkSync(dest);
+          } catch {}
           return reject(new Error(`Download failed ${res.statusCode} for ${url}`));
         }
 
+        const file = fs.createWriteStream(dest);
         res.pipe(file);
         file.on("finish", () => file.close(resolve));
       })
@@ -68,7 +73,14 @@ async function main() {
 
   for (const f of files) {
     const dest = path.join(BIN_DIR, f.name);
-    if (fs.existsSync(dest)) continue;
+    if (fs.existsSync(dest)) {
+      try {
+        const st = fs.statSync(dest);
+        if (st.size > 0) continue;
+        // A previous failed download can leave a 0-byte file; remove and retry.
+        fs.unlinkSync(dest);
+      } catch {}
+    }
     console.log(`[mlx-ts] downloading ${f.name}...`);
     await download(f.url, dest);
   }
