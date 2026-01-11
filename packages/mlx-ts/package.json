@@ -6,6 +6,9 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "mlx-ts-opencode": "./scripts/opencode-proxy.mjs"
+  },
   "files": [
     "dist",
     "scripts",

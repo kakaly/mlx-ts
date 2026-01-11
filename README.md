@@ -72,6 +72,28 @@ This repo includes a working Swift engine (`MLXSwiftEngine`) built on `MLXLMComm
 - **Override where models are cached**: pass `{ modelsDir }` to `createMlxProvider`.
 - **Override where `mlx-ts` downloads assets from**: set `MLX_TS_HOST_BASE_URL` (should point to a directory or base URL containing `mlx-host` and `mlx.metallib`).
 
+### OpenCode integration (Qwen3 Coder via MLX)
+
+OpenCode supports **OpenAI-compatible providers** and lets you override any provider’s `baseURL` ([OpenCode Providers](https://opencode.ai/docs/providers/#lm-studio)). `mlx-ts` ships a tiny OpenAI-compatible local server you can use with OpenCode.
+
+1) Start the local server:
+
+```bash
+mlx-ts-opencode --model mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit --port 3755
+```
+
+2) Generate an `opencode.json` snippet:
+
+```bash
+mlx-ts-opencode --print-config --model mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit --port 3755 > opencode.json
+```
+
+3) In OpenCode, select the model (provider/model format is `provider_id/model_id`, see [OpenCode Models](https://opencode.ai/docs/models/)):
+
+- `mlx/qwen3-coder-mlx`
+
+If you prefer to manage credentials in OpenCode, run `/connect` → **Other** → provider id `mlx` → any api key (it won’t be used if you set `options.apiKey` in the config).
+
 ### Architecture (one page)
 
 ```mermaid
