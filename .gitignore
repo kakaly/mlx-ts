@@ -31,3 +31,7 @@ examples/**/out.pid
 
 # Local model cache (if placed under repo accidentally)
 mlx-ts-models/
+
+# mlx-ts postinstall downloads (keep .gitkeep, ignore the downloaded artifacts)
+packages/mlx-ts/bin/**/mlx-host
+packages/mlx-ts/bin/**/mlx.metallib
