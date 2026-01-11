@@ -23,6 +23,14 @@ actor MLXSwiftEngine: LLMEngine {
     private var cancelled: Set<String> = []
     private var activeTasks: [String: Task<Void, Never>] = [:]
     private var lastDownloadLogTime: TimeInterval = 0
+
+    private func isCancelled(_ requestId: String) -> Bool {
+        cancelled.contains(requestId)
+    }
+    
+    private func clearCancelled(_ requestId: String) {
+        cancelled.remove(requestId)
+    }
     
     init(device: Device) {
         self.device = device
@@ -180,13 +188,32 @@ actor MLXSwiftEngine: LLMEngine {
         let session = ChatSession(container, history: history, generateParameters: params)
 
         return AsyncThrowingStream { continuation in
-            let task = Task {
+            let device = self.device
+            let modelId = request.model
+            let historyCount = history.count
+            let promptPreview = String(prompt.prefix(120)).replacingOccurrences(of: "\n", with: "\\n")
+
+            // Run generation off the actor executor to avoid starving the actor during long compute.
+            let task = Task.detached { [weak self] in
                 do {
                     let t0 = Date()
-                    print("Starting stream \(requestId) (maxTokens=\(request.maxTokens ?? -1))...")
+                    print("Starting stream \(requestId) model=\(modelId) history=\(historyCount) promptChars=\(prompt.count) maxTokens=\(request.maxTokens ?? -1)")
+                    print("Prompt preview: \(promptPreview)")
                     var firstTokenLogged = false
-                    try await Device.withDefaultDevice(self.device) {
-                        try await Stream.withNewDefaultStream(device: self.device) {
+                    
+                    // Heartbeat so it's obvious we're not deadlocked.
+                    let heartbeat = Task.detached {
+                        while !Task.isCancelled && !firstTokenLogged {
+                            try? await Task.sleep(nanoseconds: 5_000_000_000)
+                            if !Task.isCancelled && !firstTokenLogged {
+                                print("...waiting for first token (requestId=\(requestId))")
+                            }
+                        }
+                    }
+                    defer { heartbeat.cancel() }
+
+                    try await Device.withDefaultDevice(device) {
+                        try await Stream.withNewDefaultStream(device: device) {
                             let underlying = session.streamResponse(to: prompt)
                             for try await chunk in underlying {
                                 if !firstTokenLogged {
@@ -194,9 +221,9 @@ actor MLXSwiftEngine: LLMEngine {
                                     let ttft = Date().timeIntervalSince(t0)
                                     print("First token for \(requestId) after \(String(format: "%.2f", ttft))s")
                                 }
-                                if self.cancelled.contains(requestId) {
+                                if let self, await self.isCancelled(requestId) {
                                     continuation.finish(throwing: NSError(domain: "mlx-host", code: 499, userInfo: [NSLocalizedDescriptionKey: "Cancelled"]))
-                                    self.cancelled.remove(requestId)
+                                    if let self { await self.clearCancelled(requestId) }
                                     return
                                 }
                                 continuation.yield(chunk)
