@@ -6,7 +6,8 @@
     "start": "tsx src/test.ts"
   },
   "dependencies": {
-    "ai": "^4.0.0"
+    "ai": "^4.0.0",
+    "mlx-ts": "^0.0.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.6",

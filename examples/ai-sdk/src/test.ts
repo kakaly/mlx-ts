@@ -1,29 +1,19 @@
-import os from "node:os";
-import path from "node:path";
 import process from "node:process";
 
 import { generateText, streamText } from "ai";
 
-import { createMlxProvider } from "../../../packages/ai-sdk-provider-mlx/src/aiSdk.js";
+import { createMlxProvider } from "mlx-ts";
 
 async function main() {
-  // Use the metallib-enabled binary produced by xcodebuild, or set MLX_HOST_BIN manually.
-  const hostBin =
-    process.env.MLX_HOST_BIN ??
-    path.resolve(
-      process.cwd(),
-      "../../packages/mlx-host/.build/debug/mlx-host"
-    );
-
-  const modelsDir =
-    process.env.MLX_MODELS_DIR ?? path.join(os.tmpdir(), "mlx-ts-models");
+  const modelsDir = process.env.MLX_MODELS_DIR;
   const modelId =
-    process.env.MLX_HF_REPO ?? "mlx-community/Llama-3.2-3B-Instruct-4bit";
+    process.env.MLX_HF_REPO ?? "mlx-community/Llama-3.2-1B-Instruct-4bit";
 
   const mlx = createMlxProvider({
-    hostPath: hostBin,
-    inheritStdio: true,
-    modelsDir,
+    model: modelId,
+    // optional:
+    // modelsDir,
+    // hostPath: process.env.MLX_HOST_BIN,
   });
 
   const model = mlx.languageModel(modelId);
