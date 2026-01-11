@@ -64,7 +64,28 @@ jobs:
             # with:
             #   bias: self.useConvBias
             # )
-            perl -0777 -i -pe 's/(bias:\\s*self\\.useConvBias),\\s*\\n\\s*\\)/$1\\n        )/g' "$JAMBA"
+            python3 - "$JAMBA" <<'PY'
+import pathlib
+import re
+import sys
+
+path = pathlib.Path(sys.argv[1])
+src = path.read_text()
+
+# Remove the trailing comma only when it appears immediately before the closing ')'
+# in the Conv1d initializer call.
+patched = re.sub(
+    r"(bias:\s*self\.useConvBias),(\s*\n\s*\))",
+    r"\1\2",
+    src,
+)
+
+if patched == src:
+    print("warning: Jamba.swift patch made no changes (pattern not found)")
+else:
+    path.write_text(patched)
+    print("patched Jamba.swift")
+PY
           else
             echo "Expected file not found: $JAMBA" >&2
             echo "Contents of $CLONED_SPM_DIR/checkouts:" >&2
