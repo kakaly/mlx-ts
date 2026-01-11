@@ -52,7 +52,12 @@ async function main() {
   console.log(genRes.text);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main()
+  .then(() => {
+    // `mlx-ts` spawns a long-lived Swift host process; in CLI examples we want to exit once done.
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
