@@ -41,13 +41,34 @@ jobs:
         run: |
           set -euo pipefail
           cd packages/mlx-host
+          # Capture full logs + xcresult so we can debug compiler failures.
+          RESULT_BUNDLE="$RUNNER_TEMP/mlx-host.xcresult"
+          LOG_FILE="$RUNNER_TEMP/xcodebuild-mlx-host.log"
+          set +e
           xcodebuild build \
             -scheme mlx-host \
             -destination 'platform=macOS' \
             -configuration Debug \
             ARCHS=arm64 \
             ONLY_ACTIVE_ARCH=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            -resultBundlePath "$RESULT_BUNDLE" \
+            | tee "$LOG_FILE"
+          STATUS="${PIPESTATUS[0]}"
+          set -e
+          if [ "$STATUS" -ne 0 ]; then
+            echo "xcodebuild failed with status $STATUS"
+            exit "$STATUS"
+          fi
+
+      - name: Upload build logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlx-host-xcodebuild-debug
+          path: |
+            ${{ runner.temp }}/xcodebuild-mlx-host.log
+            ${{ runner.temp }}/mlx-host.xcresult
 
       - name: Locate build products
         id: locate
