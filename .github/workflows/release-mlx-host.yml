@@ -146,27 +146,6 @@ jobs:
             exit "$STATUS"
           fi
 
-          # Capture full logs + xcresult so we can debug compiler failures.
-          RESULT_BUNDLE="$RUNNER_TEMP/mlx-host.xcresult"
-          LOG_FILE="$RUNNER_TEMP/xcodebuild-mlx-host.log"
-          set +e
-          xcodebuild build \
-            -scheme mlx-host \
-            -destination 'platform=macOS' \
-            -configuration Debug \
-            ARCHS=arm64 \
-            ONLY_ACTIVE_ARCH=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -clonedSourcePackagesDirPath "$CLONED_SPM_DIR" \
-            -resultBundlePath "$RESULT_BUNDLE" \
-            | tee "$LOG_FILE"
-          STATUS="${PIPESTATUS[0]}"
-          set -e
-          if [ "$STATUS" -ne 0 ]; then
-            echo "xcodebuild failed with status $STATUS"
-            exit "$STATUS"
-          fi
-
       - name: Print first compiler error (if any)
         if: always()
         run: |
