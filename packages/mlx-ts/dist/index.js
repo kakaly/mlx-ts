@@ -1,6 +1,6 @@
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import fs from "node:fs";
 import { createMlxAiSdkProvider } from "./aiSdk.js";
 export function getBundledMlxHostPath() {
     const p = path.resolve(new URL("../bin/darwin-arm64/mlx-host", import.meta.url).pathname);
@@ -40,9 +40,7 @@ function resolveModelsDir(opts) {
 export function createMlxProvider(opts) {
     const modelsDir = resolveModelsDir(opts);
     fs.mkdirSync(modelsDir, { recursive: true });
-    const hostPath = opts.hostPath ??
-        process.env.MLX_HOST_BIN ??
-        getBundledMlxHostPath();
+    const hostPath = opts.hostPath ?? process.env.MLX_HOST_BIN ?? getBundledMlxHostPath();
     if (!hostPath) {
         throw new Error("mlx-ts: mlx-host binary not found. Provide { hostPath } or set MLX_HOST_BIN.");
     }

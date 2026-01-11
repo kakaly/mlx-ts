@@ -1,14 +1,14 @@
 {
   "name": "mlx-ts",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "AI SDK provider for local MLX (Swift) models on Apple Silicon (macOS).",
   "private": false,
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "mlx-ts-opencode": "./scripts/opencode-proxy.mjs",
-    "mlx-ts-clean-models": "./scripts/clean-models.mjs"
+    "mlx-ts-opencode": "bin/mlx-ts-opencode.js",
+    "mlx-ts-clean-models": "bin/mlx-ts-clean-models.js"
   },
   "files": [
     "dist",
