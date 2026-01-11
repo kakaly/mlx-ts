@@ -61,6 +61,8 @@ jobs:
           JAMBA="$CLONED_SPM_DIR/checkouts/mlx-swift-lm/Libraries/MLXLLM/Models/Jamba.swift"
           if [ -f "$JAMBA" ]; then
             echo "Patching $JAMBA (remove trailing comma before closing ')')"
+            # Xcode may create read-only working copies; make this checkout writable so we can patch it.
+            chmod -R u+w "$CLONED_SPM_DIR/checkouts/mlx-swift-lm" || true
             # Replace:
             #   bias: self.useConvBias,
             # )

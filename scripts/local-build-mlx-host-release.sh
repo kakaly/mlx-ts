@@ -52,6 +52,9 @@ if [ ! -f "$JAMBA" ]; then
   exit 1
 fi
 
+# Xcode may create read-only working copies; make this checkout writable so we can patch it.
+chmod -R u+w "$CLONED_SPM_DIR/checkouts/mlx-swift-lm" || true
+
 python3 - "$JAMBA" <<-'PY'
 import pathlib
 import sys
