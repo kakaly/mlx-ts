@@ -10,17 +10,22 @@ if (process.platform !== "darwin" || process.arch !== "arm64") {
   process.exit(0);
 }
 
-// This package expects prebuilt assets (mlx-host + mlx.metallib) to be hosted somewhere
-// (e.g. GitHub releases). To avoid broken installs, we only attempt the download when
-// MLX_TS_HOST_BASE_URL is provided.
+// Download source:
+// - default: GitHub Releases for this repo
+// - override: MLX_TS_HOST_BASE_URL
 //
-// Example:
-//   export MLX_TS_HOST_BASE_URL="https://github.com/<you>/<repo>/releases/download/v0.1.0/darwin-arm64"
-const BASE = process.env.MLX_TS_HOST_BASE_URL;
-if (!BASE) {
-  console.warn("[mlx-ts] MLX_TS_HOST_BASE_URL not set; skipping mlx-host download.");
-  process.exit(0);
-}
+// Expected layout at BASE:
+//   - mlx-host
+//   - mlx.metallib
+//
+// Example override:
+//   export MLX_TS_HOST_BASE_URL="https://github.com/kakaly/mlx-ts/releases/download/v0.1.1/darwin-arm64"
+const pkgJsonPath = path.resolve(new URL("../package.json", import.meta.url).pathname);
+const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
+const VERSION = pkg.version;
+
+const DEFAULT_BASE = `https://github.com/kakaly/mlx-ts/releases/download/v${VERSION}/darwin-arm64`;
+const BASE = process.env.MLX_TS_HOST_BASE_URL ?? DEFAULT_BASE;
 
 const BIN_DIR = path.resolve(new URL("../bin/darwin-arm64", import.meta.url).pathname);
 fs.mkdirSync(BIN_DIR, { recursive: true });

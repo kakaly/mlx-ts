@@ -1,0 +1,77 @@
+name: Release mlx-host (darwin-arm64)
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build mlx-host (arm64, Debug) via xcodebuild
+        run: |
+          set -euo pipefail
+          cd packages/mlx-host
+          xcodebuild build \
+            -scheme mlx-host \
+            -destination 'platform=macOS' \
+            -configuration Debug \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Locate build products
+        id: locate
+        run: |
+          set -euo pipefail
+          DD="$(ls -td "$HOME/Library/Developer/Xcode/DerivedData/mlx-host-"* | head -n 1)"
+          echo "derived_data=$DD" >> "$GITHUB_OUTPUT"
+          echo "DerivedData=$DD"
+
+      - name: Collect release assets (mlx-host + mlx.metallib)
+        run: |
+          set -euo pipefail
+          DD="${{ steps.locate.outputs.derived_data }}"
+          OUT="dist-release/darwin-arm64"
+          mkdir -p "$OUT"
+
+          BIN="$DD/Build/Products/Debug/mlx-host"
+          METAL="$DD/Build/Products/Debug/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib"
+
+          if [ ! -f "$BIN" ]; then
+            echo "mlx-host binary not found at $BIN" >&2
+            exit 1
+          fi
+          if [ ! -f "$METAL" ]; then
+            echo "default.metallib not found at $METAL" >&2
+            exit 1
+          fi
+
+          cp "$BIN" "$OUT/mlx-host"
+          chmod +x "$OUT/mlx-host"
+
+          # MLX loader first tries to find a colocated `mlx.metallib`, so ship it with that name.
+          cp "$METAL" "$OUT/mlx.metallib"
+
+          echo "Assets in $OUT:"
+          ls -la "$OUT"
+
+          echo "Binary arch:"
+          lipo -info "$OUT/mlx-host" || true
+
+      - name: Create GitHub Release (if missing) + upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist-release/darwin-arm64/mlx-host
+            dist-release/darwin-arm64/mlx.metallib
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

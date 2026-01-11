@@ -30,6 +30,7 @@ This is the intended UX for end users:
 - `createMlxProvider({ model: "mlx-community/..." })`
 - auto-downloads to a default temp dir (overrideable)
 - prints model download progress (first run)
+- on macOS arm64, `mlx-host` is auto-downloaded from GitHub Releases during install (no Swift build required)
 
 Code snippet:
 
